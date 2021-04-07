@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://example.com/2021/04/07/%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81/</loc>
+    
+    <lastmod>2021-04-07</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://example.com/2021/04/04/Bypass-WAF/</loc>
     
     <lastmod>2021-04-05</lastmod>
@@ -11,7 +18,7 @@
 
   <url>
     <loc>http://example.com/</loc>
-    <lastmod>2021-04-05</lastmod>
+    <lastmod>2021-04-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -19,7 +26,14 @@
   
   <url>
     <loc>http://example.com/tags/WAF/</loc>
-    <lastmod>2021-04-05</lastmod>
+    <lastmod>2021-04-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://example.com/tags/%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81/</loc>
+    <lastmod>2021-04-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>

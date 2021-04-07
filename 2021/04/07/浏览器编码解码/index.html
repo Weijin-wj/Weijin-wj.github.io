@@ -6,15 +6,22 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://example.com">
-  <title>Archives | 未尽的博客</title>
+  <title>浏览器编码解码 | 未尽的博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="未尽的博客">
-<meta property="og:url" content="http://example.com/archives/index.html">
+  <meta name="description" content="浏览器涉及的三个编码规则：html编码，url编码，javascript编码。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浏览器编码解码">
+<meta property="og:url" content="http://example.com/2021/04/07/%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81/index.html">
 <meta property="og:site_name" content="未尽的博客">
+<meta property="og:description" content="浏览器涉及的三个编码规则：html编码，url编码，javascript编码。">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/assets/photo/bianmajiema/1.png">
+<meta property="article:published_time" content="2021-04-07T11:37:46.000Z">
+<meta property="article:modified_time" content="2021-04-07T13:26:23.698Z">
 <meta property="article:author" content="未尽">
+<meta property="article:tag" content="-编码解码">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/assets/photo/bianmajiema/1.png">
   
     <link rel="alternative" href="/atom.xml" title="未尽的博客" type="application/atom+xml">
   
@@ -132,36 +139,108 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            
-  
-  
+            <article id="post-浏览器编码解码" class="article article-type-post " itemscope itemprop="blogPost">
+  <div class="article-inner">
     
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2021" class="archive-year">2021</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2021/04/07/%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81/" class="archive-article-date">
-  	<time datetime="2021-04-07T11:37:46.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-04-07</time>
-</a>
-        </div>
-    	 
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/04/07/%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81/">浏览器编码解码</a>
+    <h1 class="article-title" itemprop="name">
+      浏览器编码解码
     </h1>
   
 
-        <div class="article-info info-on-right">
-          
+        
+        <a href="/2021/04/07/%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81/" class="archive-article-date">
+  	<time datetime="2021-04-07T11:37:46.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-04-07</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>浏览器涉及的三个编码规则：html编码，url编码，javascript编码。</p>
+<span id="more"></span>
+<p>HTML解析器对HTML文档进行解析，完成HTML解码并创建DOM树。<br>JavaScript和CSS解析器对内联脚本进行解析，完成JS、CSS解码。<br>URL解码会根据URL所在的顺序不同在JS解码前或解码后。</p>
+<h2 id="HTML解析器"><a href="#HTML解析器" class="headerlink" title="HTML解析器"></a>HTML解析器</h2><p>HTML中有五种元素：<br>空元素，如hr、img、input等，不能容纳任何内容，因为它们没有闭合标签。<br>原始文本元素，有&lt;script&gt;和&lt;style&gt;,可容纳文本。<br>RCDATA元素，有&lt;textarea&gt;和&lt;title&gt;，可容纳文本和字符引用。<br>外来元素，来自MathML命名空间和SVG命名空间的元素，可容纳文本，字符引用，CDATA段，其他元素和注释。<br>常规元素，其他HTML允许的元素都称为常规元素，可容纳文本，字符引用，其他元素和注释。<br><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element">HTML元素参考</a><br><a target="_blank" rel="noopener" href="https://www.w3.org/html/ig/zh/wiki/HTML5/syntax">HTML</a></p>
+<h2 id="概念解释："><a href="#概念解释：" class="headerlink" title="概念解释："></a>概念解释：</h2><p>字符实体：字符实体是一个转义序列，它定义了一般无法在文本内容中输入的单个字符或符号。一个字符实体以一个&amp;符号开始，后面跟着一个预定义的实体的名称，或是一个#符号以及字符的十进制数字，也可以是&amp;#x后面跟16进制数字。</p>
+<p>Html字符实体：在HTML中，某些字符是预留的。例如在HTML中不能使用“&lt;”或“&gt;”，这是因为浏览器可能误认为它们是标签的开始或结束。如果希望正确地显示预留字符，就需要在HTML中使用对应的字符实体。例如字符 &lt; 实体名称为 &amp;lt; ，实体编号为 &amp;#60; 或者 &amp;#x3c; ，某些字符没有实体名称，但可以有实体编号。</p>
+<p>字符引用：字符引用包括“字符值引用”和“字符实体引用”。在上述HTML例子中，&lt; 对应的字符值引用为 &amp;#60; ，对应的字符实体引用为 &amp;lt; 。字符实体引用也被叫做“实体引用”或“实体”。</p>
+<p>html解析器以状态机的方式运行，它从文档输入流中消耗字符并根据其转换规则转换到不同的状态。<br>如</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span>Hello<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>解析器的初始状态为Data state，当遇到 &lt; 时，状态转为Tag open，读取到a-z中的某个字符会创建开始标签，此时状态转为Tag name，（HTML元素的名称只使用编码在U+0030数字0到U+0039数字9、U+0061小写字母a到U+007A小写字母z,U+0041大写字母A到U+005A大写字母Z，这些区间内的字符。在HTML语法中，标签名包括外来元素，可以用任何形式的大小写字母组合形式，只要所有字符转化为小写以后和元素的标签名称相等即可，即标签名是大小写不敏感的。）直到读取到&gt;，状态又回到Data，接着读取到H会识别并生成一个字符，相应得会为Hello中的每个字符生成一个字符符号；之后遇到&lt;，又转为Tag open，读取到 “/” 则创建一个闭合标签，并将状态变为Tag name，直到遇到&gt;后回到Data state。</p>
+<p><strong>注意：</strong> HTML解析器地域与三种情况，数据状态中的字符引用（Data Stata）、RCDATA State和属性值状态中的字符引用（Attribute Value State），字符实体会被解码为对应的字符<br>举例：&lt;div&gt;&amp;#60;img src=x onerror=alert(4)&amp;#62;&lt;/div&gt;<br>其中&amp;#60;&amp;#62;会被解码为&lt;&gt;，但是不会触发JS执行，即不会弹窗，因为解码 &amp;#60; 解析器处于Data状态，上面说到 当遇到 &lt; 时，状态转为Tag open，读取到a-z中的某个字符会创建开始标签 虽然这里 &amp;#60; 是 &lt; 的编码，但是它并不是直接就是 &lt; ，所以解析器在解析这个字符引用后不会转换到“标签开始状态”。正因为如此，就不会建立新标签</p>
+<h2 id="原始文本元素："><a href="#原始文本元素：" class="headerlink" title="原始文本元素："></a>原始文本元素：</h2><p>&lt;script&gt; &lt;style&gt;，该元素标签中的实体字符不会被html解析器解码。<br>如 </p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="handlebars"><span class="xml">alert<span class="symbol">&amp;#40;</span>1)</span></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>根本不会执行。但是 </p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">svg</span>&gt;</span><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="handlebars"><span class="xml">alert<span class="symbol">&amp;#40;</span>1)</span></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>却可以执行。上文中说到外来元素（来自MathML命名空间和SVG命名空间的元素）是HTML五种元素之一，MathML是一种基于XML的标准（MathML的介绍），&lt;svg&gt;应该是遵循XML和SVG的定义。在XML中，&amp;#40;会被解析成小括号左半边（ ，在XML中实体会自动转义,除了 &lt;![CDATA[ 和 ]]&gt; 包含的实体，所以&lt;script&gt;中的 &amp;#40；会被解码。<br><a target="_blank" rel="noopener" href="https://www.hackersb.cn/hacker/85.html">一个师傅对&lt;svg&gt;的解析</a></p>
+<p>虽然对&lt;script&gt;标签中的html编码，html解析器不会解析，但是例如：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">#</span> <span class="attr">onerror</span>=<span class="string">&amp;#x61;&amp;#x6c;&amp;#x65;&amp;#x72;&amp;#x74;&amp;#x28;&amp;#x31;&amp;#x29;</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<p>是可以正常解析并执行的。如果对标签名或属性名进行编码，虽然会解析，但也不会执行，因为它们进行编码后读到它们，浏览器不会认为它们是标签名和属性名，上文中的 HTML字符实体概念很好的解释了这一点。</p>
+<h2 id="RCDATA元素："><a href="#RCDATA元素：" class="headerlink" title="RCDATA元素："></a>RCDATA元素：</h2><p>&lt;textarea&gt; &lt;title&gt; ，html解析器遇到该元素标签时，会进入RCDATA状态，字符实体会被解析器解码。<br>但是如果&lt;textarea&gt; 或 &lt;title&gt; 标签中包含 &lt;script&gt; 不会执行，看到许多文章中举例：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">textarea</span>&gt;</span><span class="symbol">&amp;#60;</span>script<span class="symbol">&amp;#62;</span>alert(5)<span class="symbol">&amp;#60;</span>/script<span class="symbol">&amp;#62;</span><span class="tag">&lt;/<span class="name">textarea</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<p>没有执行是因为 &lt; 和 &gt; 被编码为实体&amp;#60;和&amp;#62; 解码时没有进入标签开始状态。我认为这个解释不合理。<br>例如：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">textarea</span>&gt;</span><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="handlebars"><span class="xml"><span class="symbol">&amp;#97;</span>lert(1)</span></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span><span class="tag">&lt;/<span class="name">textarea</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">textarea</span>&gt;</span><span class="tag">&lt;<span class="name">script</span>&gt;</span>alert(1)<span class="tag">&lt;/<span class="name">script</span>&gt;</span><span class="tag">&lt;/<span class="name">textarea</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>依然只会解析不会执行。<br>对于&lt;title&gt;标签的定义为：HTML &lt;title&gt; 元素 定义文档的标题，显示在浏览器的标题栏或标签页上。它只可以包含文本，若是包含有标签，则包含的任何标签都不会被解释。<br>对于&lt;textarea&gt;标签的定义为：HTML &lt;textarea&gt; 元素表示一个多行纯文本编辑控件。<br>所以在&lt;textarea&gt; 或 &lt;title&gt; 标签中的字符都被当成了文本显示，而不会执行。</p>
+<h2 id="Javascript解析器："><a href="#Javascript解析器：" class="headerlink" title="Javascript解析器："></a>Javascript解析器：</h2><p>JS编码的规则相对来说比较严谨，它对除了阿拉伯数字和字母外的东西都进行了一个编码，最常用的如\uXXXX这种写法为Unicode转义序列，表示一个字符，其中xxxx（这里一定要用4位，没有的用0替代）表示一个16进制数字，如 &lt;  Unicode编码为\u003c。<br>上文中说到，对处于&lt;script&gt;标签中的字符进行html编码，html解析器不会进行解码，但是在一些情况下，对&lt;script&gt;标签中的字符进行js编码，是可以解码并执行的。<br>标签&lt;javascript&gt;中有三个地方可以出现JS编码：<br>1.字符串中 ：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="javascript">alert(<span class="string">&quot;\u0031\u0030&quot;</span>);</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>被编码转义的部分为 10，是字符串，会被正常解码，JS 代码也会被执行。<br>但是 </p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span>alert(\u0031\u0030);<span class="tag">&lt;/<span class="name">script</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<p>如果不带引号，该代码则不会执行，因为即使\u0031\u0030代表数字，解码后是按照字符型而不是int型，因此要加上引号。</p>
+<p>2.标识符中：当Unicode转义序列出现在标识符名称中时，它会被解码并解释为标识符名称的一部分，例如函数名，属性名等等。<br>例如 </p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span>\u0061\u006c\u0065\u0072\u0074(10);<span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>被编码转义的部分为 alert 字符，是函数名，属于在标识符中的情况，因此会被正常解码，JS 代码也会被执行。</p>
+<p>3.控制字符：当用Unicode转义序列来表示一个控制字符时，例如单引号、双引号、圆括号等等，它们将不会被解释成控制字符，而仅仅被解码并解析为标识符名称或者字符串常量。<br>例如：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="javascript">alert\u0028<span class="string">&quot;xss&quot;</span>); </span><span class="tag">&lt;/<span class="name">script</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<p>对 ( 进行了 Unicode 编码，那么解码后它不再是作为控制字符，而是作为标识符的一部分alert( 。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span>alert(“13\u0022)<span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>被编码处为双引号 “ 。该例的 JS 不会执行，因为控制字符被编码了，解码后的双引号将变为字符串的一部分，而不再解释为控制字符。因此该例中字符串是不完整的，因为没有双引号来闭合字符串。<br>但是 </p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span>alert(“13\u0022”)<span class="tag">&lt;/<span class="name">script</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/photo/bianmajiema/1.png"><br><br>是可以执行的,从图中可以看到 \u0022 被解析为双引号，但并没有破坏原来的结构，这是因为它被解析为一个普通字符，而不是控制符，这也正是编码的意义所在。<br>如果在其他元素中使用js代码，并对其进行js编码。道理与这里一样。<br>例如 </p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">#</span> <span class="attr">onerror</span>=<span class="string">\u0061\u006c\u0065\u0072\u0074(‘\u0031’)</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<p>是可以正常执行的。我们以浏览器的视角来看：首先读到&lt;开始读取标签，然后读到 onerror 调用 JS 解析器。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">javascript:\u0061\u006c\u0065\u0072\u0074(‘\u0031’)</span>&gt;</span>test<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p> 该条代码也可以正常执行，但是如果对该代码中 javascript 进行js编码，这条代码将不会执行，因为浏览器只有读到 javascript后，知道这是javascript伪协议，所以才会调用 JS 解析器。 解析后面的JS代码。<br>如果是 </p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span>  <span class="attr">href</span>=<span class="string">&amp;#x6a;&amp;#x61;&amp;#x76;&amp;#x61;&amp;#x73;&amp;#x63;&amp;#x72;&amp;#x69;&amp;#x70;&amp;#x74;&amp;#x3a;\u0061\u006c\u0065\u0072\u0074(‘\u0031’)</span>&gt;</span>test<span class="tag">&lt;/<span class="name">a</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<p>也能顺利执行，HTML状态机处于属性值状态（Attribute Value State）时，字符实体时会被解码的，此处在 href 属性中，所以被实体化编码的 “javascript”字符串会被解码。其次，HTML 解析是在JS解析之前的，所以在进行 JS解析之前，协议部分的”javascript”字符串已被解码，而并不再是被实体编码的状态。冒号编不编码(html编码)均可执行，但不能对冒号进行JS编码，href后面的属性值加不加双引号都可以执行，但是如果对双引号进行html编码，代码则无法执行。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&amp;#x22;&amp;#x6a;&amp;#x61;&amp;#x76;&amp;#x61;&amp;#x73;&amp;#x63;&amp;#x72;&amp;#x69;&amp;#x70;&amp;#x74;&amp;#x3a;\u0061\u006c\u0065\u0072\u0074(‘\u0031’)&amp;#x22;</span>&gt;</span>test<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>在html解码中有一个情况叫做 属性值中的字符引用 ，所以解码时把 &amp;#x22;（双引号） 当成了属性值的一部分，故该代码无法执行，如果是原本带有双引号如href=”xxx”,想要通过插入编码的双引号（如&amp;#x22;）来形成闭合，造成里面的值逃出，也是不起作用，原因与上相同。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;<span class="symbol">&amp;#x6a;</span><span class="symbol">&amp;#x61;</span><span class="symbol">&amp;#x76;</span><span class="symbol">&amp;#x61;</span><span class="symbol">&amp;#x73;</span><span class="symbol">&amp;#x63;</span><span class="symbol">&amp;#x72;</span><span class="symbol">&amp;#x69;</span><span class="symbol">&amp;#x70;</span><span class="symbol">&amp;#x74;</span><span class="symbol">&amp;#x3a;</span>\u0061\u006c\u0065\u0072\u0074(<span class="symbol">&amp;#x22;</span>\u0031<span class="symbol">&amp;#x22;</span>)&quot;</span>&gt;</span>test<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>如果是这样是可以执行的。因为它们都是href属性值的一部分。</p>
+<h2 id="URL解析器："><a href="#URL解析器：" class="headerlink" title="URL解析器："></a>URL解析器：</h2><p>URL资源类型必须是ASCII字母（U+0041-U+005A || U+0061-U+007A），不然就会进入“无类型”状态。例如，你不能对协议类型（如http 伪协议javascript等）进行任何的编码操作，不然URL解析器会认为它无类型。<br>如：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;javascript:%61%6c%65%72%74%28%32%29&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>可正常执行。但是如果对javascript或冒号进行url编码，则不会执行。<br>如果是：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span>  <span class="attr">href</span>=<span class="string">&amp;#x6a;&amp;#x61;&amp;#x76;&amp;#x61;&amp;#x73;&amp;#x63;&amp;#x72;&amp;#x69;&amp;#x70;&amp;#x74;&amp;#x3a;%61%6c%65%72%74%28%32%29</span>&quot;&gt;</span></span><br></pre></td></tr></table></figure>
+<p>也可以正常执行，原因与上文JS解析器中提到的相同。</p>
+<h2 id="编码解析的顺序："><a href="#编码解析的顺序：" class="headerlink" title="编码解析的顺序："></a>编码解析的顺序：</h2><p>首先浏览器接收到一个 HTML 文档时，会触发 HTML 解析器对 HTML 文档进行词法解析，这一过程完成 HTML 解码并创建 DOM 树。JavaScript解析器会介入来对内联脚本进行解析。在这一步中Unicode转义序列和Hex转义序列被解码。同时，如果浏览器遇到需要URL的上下文，URL解析器也会介入来解码URL内容。在这一步中URL解码操作被完成。由于URL位置不同，URL解析器可能会在JavaScript解析器之前或之后进行解析。<br>例1 </p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;UserInput&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>HTML解析器将首先开始工作，对UserInput部分的字符引用进行解码。然后URL解析器开始对href值进行URL解码。最后，如果URL资源类型是JavaScript，那么JavaScript解析器会进行Unicode转义序列和Hex转义序列的解码。再之后，解码的脚本会被执行。因此，这里涉及三轮解码，顺序是HTML，URL和JavaScript。</p>
+<p>例2 </p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">#</span> <span class="attr">onclick</span>=<span class="string">&quot;window.open(<span class="symbol">&amp;apos;</span>UserInput<span class="symbol">&amp;apos;</span>)&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>HTML解析器首先工作。然而接下来，JavaScript解析器开始解析在onclick事件处理器中的值。这是因为在onclick事件处理器中是script的上下文。当这段JavaScript被解析并被执行的时候，它执行的是“window.open()”操作，其中的参数是URL的上下文。在此时，URL解析器开始对UserInput进行URL解码并把结果回传给JavaScript引擎。因此这里一共涉及三轮解码，顺序是HTML，JavaScript和URL。</p>
+<p>例3 </p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;javascript:window.open(<span class="symbol">&amp;apos;</span>UserInput<span class="symbol">&amp;apos;</span>)&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>例3与例1很像，但不同的是在UserInput前多了window.open()操作。因此，对UserInput多了一次额外的URL解码操作。总的来说，四轮解码操作被完成，顺序是HTML，URL，JavaScript和URL。</p>
+<p>二层混淆编码：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;javascript:ale%5c%75%30%30%37%32t(1)&quot;</span>&gt;</span>alert(1)</span><br><span class="line">中的r进行js编码，后url编码<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;javascript:ale<span class="symbol">&amp;#x5c;</span><span class="symbol">&amp;#x75;</span><span class="symbol">&amp;#x30;</span><span class="symbol">&amp;#x30;</span><span class="symbol">&amp;#x37;</span><span class="symbol">&amp;#x32;</span>t(1)&quot;</span>&gt;</span>alert(1)中的r进行js编码，后html编码<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;javascript:ale<span class="symbol">&amp;#x25;</span><span class="symbol">&amp;#x37;</span><span class="symbol">&amp;#x32;</span>t(1)&quot;</span>&gt;</span>alert(1)中的r进行url编码，后html编码<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>三层混淆编码：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;javascript:ale<span class="symbol">&amp;#x25;</span><span class="symbol">&amp;#x35;</span><span class="symbol">&amp;#x63;</span><span class="symbol">&amp;#x25;</span><span class="symbol">&amp;#x37;</span><span class="symbol">&amp;#x35;</span><span class="symbol">&amp;#x25;</span><span class="symbol">&amp;#x33;</span><span class="symbol">&amp;#x30;</span><span class="symbol">&amp;#x25;</span><span class="symbol">&amp;#x33;</span><span class="symbol">&amp;#x30;</span><span class="symbol">&amp;#x25;</span><span class="symbol">&amp;#x33;</span><span class="symbol">&amp;#x37;</span><span class="symbol">&amp;#x25;</span><span class="symbol">&amp;#x33;</span><span class="symbol">&amp;#x32;</span>t(1)&quot;</span>&gt;</span>alert(1)中的r进行js编码，后url编码，再html 编码<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p><a target="_blank" rel="noopener" href="http://bobao.360.cn/learning/detail/292.html">深入理解浏览器解析机制和XSS向量编码</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/222849.html">对浏览器解析和XSS的深度探究</a><br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/5863">浏览器解码看XSS</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/baidu_38844729/article/details/109328472">浏览器解码规则详解</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
 	<div class="article-tag tagcloud">
 		<i class="icon-price-tags icon"></i>
 		<ul class="article-tag-list">
@@ -173,57 +252,136 @@
 		</ul>
 	</div>
 
-          
+      
 
+      
+
+      
+        
+<div class="share-btn share-icons tooltip-left">
+  <div class="tooltip tooltip-east">
+    <span class="tooltip-item">
+      <a href="javascript:;" class="share-sns share-outer">
+        <i class="icon icon-share"></i>
+      </a>
+    </span>
+    <span class="tooltip-content">
+      <div class="share-wrap">
+        <div class="share-icons">
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="icon icon-weibo"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="icon icon-weixin"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="icon icon-qq"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="icon icon-douban"></i>
+          </a>
+          <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a>
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="icon icon-facebook"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="icon icon-twitter"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="icon icon-google"></i>
+          </a>
         </div>
-        <div class="clearfix"></div>
-    </header>
+      </div>
+    </span>
+  </div>
+</div>
+
+<div class="page-modal wx-share js-wx-box">
+    <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2021/04/07/%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div class="mask js-mask"></div>
+      
+      <div class="clearfix"></div>
+    </div>
   </div>
 </article>
+
   
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2021/04/04/Bypass-WAF/" class="archive-article-date">
-  	<time datetime="2021-04-04T10:18:25.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-04-04</time>
-</a>
+<nav id="article-nav">
+  
+  
+    <a href="/2021/04/04/Bypass-WAF/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Bypass WAF</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
         </div>
-    	 
+        
+        
+    </div>
+</aside>
+
+
+
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/04/04/Bypass-WAF/">Bypass WAF</a>
-    </h1>
+  <div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="浏览器编码解码" data-title="浏览器编码解码" data-url="http://example.com/2021/04/07/%E6%B5%8F%E8%A7%88%E5%99%A8%E7%BC%96%E7%A0%81%E8%A7%A3%E7%A0%81/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"fasle"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+  
+  
   
 
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">WAF</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
   
-  
-    </div></section>
+  <div id="SOHUCS" sid="浏览器编码解码" ></div> 
+<script charset="utf-8" type="text/javascript" src="//changyan.sohu.com/upload/changyan.js" ></script>
+<script type="text/javascript">
+    window.changyan.api.config({
+        appid: "cyvodUOFL",
+        conf: "c8aceb6ce507904cb1318b83e46a6bfc"
+    });
+</script>
+</script>
   
 
-    
+  
+
+  
 
 
           </div>
@@ -246,8 +404,8 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
-		isArchive: true,
+		isPost: true,
+		isArchive: false,
 		isTag: false,
 		isCategory: false,
 		open_in_new: false,
