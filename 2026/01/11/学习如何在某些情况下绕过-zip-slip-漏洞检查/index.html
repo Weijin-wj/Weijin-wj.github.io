@@ -26,7 +26,7 @@
 <meta property="og:image" content="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/image-20260111192955363.png">
 <meta property="og:image" content="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/image-20260111193220241.png">
 <meta property="article:published_time" content="2026-01-11T11:01:34.000Z">
-<meta property="article:modified_time" content="2026-01-11T11:38:33.663Z">
+<meta property="article:modified_time" content="2026-01-11T11:52:14.582Z">
 <meta property="article:author" content="未尽">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://blog-img-by-me.oss-cn-beijing.aliyuncs.com/img/image-20260111192955363.png">
@@ -290,7 +290,7 @@
 <li><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/2382">https://xz.aliyun.com/t/2382</a></li>
 </ul>
 </blockquote>
-<h1 id="绕过-zip-slip-漏洞检查"><a href="#绕过-zip-slip-漏洞检查" class="headerlink" title="绕过 zip slip 漏洞检查"></a>绕过 zip slip 漏洞检查</h1><p>在某些情况下，利用防范 zip slip 的解析差异对其进行绕过</p>
+<h1 id="绕过-zip-slip-漏洞检查"><a href="#绕过-zip-slip-漏洞检查" class="headerlink" title="绕过 zip slip 漏洞检查"></a>绕过 zip slip 漏洞检查</h1><p>安全研究员<code>Paweł Hałdrzyński</code>发现在某些情况下，可以利用验证是否存在 zip slip 漏洞的方法与解压缩方法之间的解析差异对其进行绕过</p>
 <h2 id="zip-文件格式简述"><a href="#zip-文件格式简述" class="headerlink" title="zip 文件格式简述"></a>zip 文件格式简述</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs plain">[ Local File Header A ]<br>[ File Data A ]<br>[ (Optional) Data Descriptor A ]<br><br>[ Local File Header B ]<br>[ File Data B ]<br>[ (Optional) Data Descriptor B ]<br><br>[ Local File Header C ]<br>[ File Data C ]<br>[ (Optional) Data Descriptor C ]<br><br>[ Central Directory Entry for A ]<br>[ Central Directory Entry for B ]<br>[ Central Directory Entry for C ]<br><br>[ End of Central Directory Record (EOCD) ]<br></code></pre></td></tr></table></figure>
 
 <p>zip文件格式简单来说可以分为三个部分数据存储区、中央目录区、中央目录结束记录(EOCD)</p>
